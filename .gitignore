@@ -1,0 +1,7 @@
+bin/
+obj/
+.vs/
+.vscode/
+todo.db
+todo.db-shm
+todo.db-wal

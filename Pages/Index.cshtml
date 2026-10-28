@@ -1,0 +1,65 @@
+@page
+@model IndexModel
+@{
+    ViewData["Title"] = "My tasks";
+}
+<header class="topbar">
+    <div class="brand"><span class="brand-mark">✓</span> taskflow</div>
+    <span class="topbar-note">A calmer way to get things done</span>
+</header>
+<section class="hero">
+    <p class="eyebrow">YOUR WORKSPACE</p>
+    <h1>Make today count<span class="period">.</span></h1>
+    <p class="subhead">Capture the little things. Make space for the big things.</p>
+</section>
+<section class="stats" aria-label="Task statistics">
+    <div class="stat"><span class="stat-number">@Model.Total</span><span class="stat-label">Total tasks</span></div>
+    <div class="stat"><span class="stat-number">@Model.Remaining</span><span class="stat-label">To do</span></div>
+    <div class="stat"><span class="stat-number">@Model.Completed</span><span class="stat-label">Completed</span></div>
+    <div class="progress-card"><div class="progress-head"><span>Overall progress</span><strong>@(Model.Total == 0 ? 0 : (int)Math.Round(100.0 * Model.Completed / Model.Total))%</strong></div><div class="progress-track"><div class="progress-fill" style="width:@(Model.Total == 0 ? 0 : (int)Math.Round(100.0 * Model.Completed / Model.Total))%"></div></div></div>
+</section>
+<section class="content-grid">
+    <div class="task-section">
+        <div class="section-header"><div><p class="eyebrow">STAY ON TRACK</p><h2>Your tasks</h2></div><span class="count-pill">@Model.Tasks.Count shown</span></div>
+        <nav class="tabs" aria-label="Filter tasks">
+            <a asp-page="/Index" asp-route-filter="all" class="@(Model.Filter == "all" ? "active" : "")">All tasks</a>
+            <a asp-page="/Index" asp-route-filter="active" class="@(Model.Filter == "active" ? "active" : "")">To do</a>
+            <a asp-page="/Index" asp-route-filter="completed" class="@(Model.Filter == "completed" ? "active" : "")">Completed</a>
+        </nav>
+        @if (Model.Tasks.Count == 0)
+        {
+            <div class="empty"><div class="empty-icon">✦</div><h3>No tasks here yet</h3><p>@(Model.Filter == "all" ? "Add your first task to get started." : "Nothing in this view right now.")</p></div>
+        }
+        else
+        {
+            <ul class="task-list">
+                @foreach (var task in Model.Tasks)
+                {
+                    <li class="task-item @(task.IsCompleted ? "done" : "")">
+                        <form method="post" asp-page-handler="Toggle" asp-route-id="@task.Id" asp-route-filter="@Model.Filter"><button class="check-button" type="submit" title="@(task.IsCompleted ? "Mark incomplete" : "Mark complete")" aria-label="@(task.IsCompleted ? "Mark incomplete" : "Mark complete")">@(task.IsCompleted ? "✓" : "")</button></form>
+                        <div class="task-text"><h3>@task.Title</h3>@if (!string.IsNullOrWhiteSpace(task.Description)) { <p>@task.Description</p> }@if (task.DueDate.HasValue) { <span class="due">◷ Due @task.DueDate.Value.ToString("dd MMM yyyy")</span> }</div>
+                        <form method="post" asp-page-handler="Delete" asp-route-id="@task.Id" asp-route-filter="@Model.Filter" onsubmit="return confirm('Delete this task?');"><button type="submit" class="delete-button" aria-label="Delete @task.Title" title="Delete task">×</button></form>
+                    </li>
+                }
+            </ul>
+        }
+    </div>
+    <aside class="add-panel">
+        <div class="plus-icon">＋</div><p class="eyebrow">GET IT DONE</p><h2>Add a new task</h2><p class="panel-description">Clear your mind and write it down.</p>
+        <form method="post" asp-page-handler="Add">
+            <div asp-validation-summary="ModelOnly" class="validation"></div>
+            <label asp-for="Input.Title">Task name <span class="required">*</span></label>
+            <input asp-for="Input.Title" placeholder="e.g. Finish my project" maxlength="120" required />
+            <span asp-validation-for="Input.Title" class="validation"></span>
+            <label asp-for="Input.Description">Description <span class="optional">(optional)</span></label>
+            <textarea asp-for="Input.Description" placeholder="Add some details..." rows="3" maxlength="500"></textarea>
+            <span asp-validation-for="Input.Description" class="validation"></span>
+            <label asp-for="Input.DueDate">Due date <span class="optional">(optional)</span></label>
+            <input asp-for="Input.DueDate" type="date" />
+            <span asp-validation-for="Input.DueDate" class="validation"></span>
+            <button class="primary-button" type="submit">＋ Add task</button>
+        </form>
+        <div class="panel-footer">✧ Small steps, big progress.</div>
+    </aside>
+</section>
+<footer class="footer">Made with ASP.NET Core Razor Pages · SQLite</footer>
